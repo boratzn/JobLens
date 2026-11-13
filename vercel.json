@@ -1,0 +1,9 @@
+{
+  "regions": ["fra1"],
+  "crons": [
+    {
+      "path": "/api/cron/temizlik",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

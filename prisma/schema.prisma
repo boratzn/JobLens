@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Analysis {
+  id           String     @id @default(cuid())
+  anonymousId  String
+  url          String?
+  urlHash      String?    // normalize edilmiş URL'nin SHA-256'sı (cache anahtarı)
+  kaynakSite   String
+  hamMetin     String     @db.Text
+  jobAnalysis  Json
+  companyInfo  Json?
+  interviewSet Json?
+  createdAt    DateTime   @default(now())
+  cvUploads    CvUpload[]
+
+  @@index([anonymousId, createdAt])
+  @@index([urlHash, createdAt])
+}
+
+model CvUpload {
+  id            String   @id @default(cuid())
+  analysisId    String
+  analysis      Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  anonymousId   String
+  dosyaAdi      String
+  cvMetni       String   @db.Text
+  cvMatch       Json?
+  silinmeTarihi DateTime // createdAt + CV_RETENTION_DAYS
+  createdAt     DateTime @default(now())
+
+  @@index([silinmeTarihi])
+}
+
+model RateLimit {
+  key       String   @id // ornek "ip:1.2.3.4:2026-10-25T13:02"
+  count     Int      @default(1)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
